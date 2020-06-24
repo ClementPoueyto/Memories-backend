@@ -5,17 +5,12 @@ const mongoose = require('mongoose')
 module.exports = new BaseModel('Client', {
 
   email : Joi.string().required(),  
-  pseudo: Joi.string().required(),
   password : Joi.string().required(),
-  isAdmin: Joi.number().required()
+  isAdmin: Joi.boolean().required()
 
 },
 new mongoose.Schema({
   email : {
-    type : String,
-    required : true
-  },
-  pseudo : {
     type : String,
     required : true
   },
@@ -24,7 +19,7 @@ new mongoose.Schema({
     required : true
   },
   isAdmin : {
-    type : Number,
+    type : Boolean,
     required : true
   }
 },{

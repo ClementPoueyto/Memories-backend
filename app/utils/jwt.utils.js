@@ -35,5 +35,23 @@ module.exports = {
         return userId;
     },
 
+    isUserAdmin : function(authorization){
+        const token = module.exports.parseAuthorization(authorization);
+        if(token!=null){
+            try{
+                let jwtToken = jwt.verify(token, JWT_SIGN_SECRET);
+                if(jwtToken != null){
+                    return jwtToken.isAdmin
+                }
+
+                return false
+                
+            }catch(err){
+                    
+            }
+        }
+
+    }
+
 
 }

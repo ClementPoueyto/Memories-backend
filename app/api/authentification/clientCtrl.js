@@ -10,8 +10,11 @@ module.exports = {
         const email = req.body.email
         const pseudo = req.body.pseudo
         const password = req.body.password
+        const firstName = req.body.firstName
+        const lastName = req.body.lastName
 
-        if (email == null || pseudo == null || password == null) {
+
+        if (email == null || pseudo == null || password == null || firstName == null || lastName == null) {
             return res.status(400).json({ 'error': 'missing parameters' });
         }
 
@@ -20,9 +23,15 @@ module.exports = {
         }
 
         if(pseudo.length>=20 || pseudo.length<=4){
-            return res.status(400).json({'error': 'wrong pseudo (must be length 5 -20)'})
+            return res.status(400).json({'error': 'wrong pseudo (must be length 5 - 20)'})
         }
 
+        if(firstName.length>=20 || firstName.length<1){
+            return res.status(400).json({'error': 'wrong first name (must be length 2 - 20)'})
+        }
+        if(lastName.length>=20 || lastName.length<1){
+            return res.status(400).json({'error': 'wrong last name (must be length 2 - 20)'})
+        }
 
         Client.mongooseModel.findOne({ email: email }).then(function (userFound) {
             if (!userFound) {
@@ -31,12 +40,21 @@ module.exports = {
                         bcrypt.hash(password, 5, function (err, bcryptPassword) {
                             Client.create({
                                 email: email,
-                                pseudo: pseudo,
                                 password: bcryptPassword,
-                                isAdmin : 0
+                                isAdmin : false
                             }, (err,client) =>{
                                 if (client&&!err) {
-                                    const user = { _id:client._id.toString(), titles:pseudo, isPrivate : false} 
+                                    const user = { 
+                                        _id:client._id.toString(), 
+                                        firstName :firstName, 
+                                        lastName : lastName,
+                                        fullName : firstName.toLowerCase()+lastName.toLowerCase(),
+                                        pseudo : pseudo,
+                                        imageUrl : "",
+                                        followers : [client._id.toString()],
+                                        following : [],
+                                        isPrivate : false,
+                                    } 
                                     User.create(user,(error, user)=>{
                                         if (error||!user) {
                                           error?res.status(400).json({ 'error': error }):res.status(400).json({ 'error': "server failed to create user" });

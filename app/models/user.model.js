@@ -4,20 +4,51 @@ const mongoose = require('mongoose')
 
 module.exports = new BaseModel('User', {
   _id : Joi.string().required(),
-  titles : Joi.string().required(),  
-  isPrivate : Joi.boolean().required()
+  firstName : Joi.string().required(),  
+  lastName : Joi.string().required(),  
+  fullName : Joi.string().required(),  
+  followers : Joi.array().required(),  
+  following : Joi.array().required(),  
+  imageUrl : Joi.string().allow("").required(),  
+  isPrivate : Joi.boolean().required(),
+  pseudo : Joi.string().required(),  
+
 },
 new mongoose.Schema({
   _id : {
     type : String,
     required : true
   },
-  titles : {
+  pseudo : {
+    type: String,
+    required : true
+  },
+  firstName : {
     type : String,
     required : true
   },
-  isPrivate:{
-    type:Boolean,
+  lastName : {
+    type : String,
+    required : true
+  },
+  fullName : {
+    type : String,
+    required : true
+  },
+  followers : {
+    type : Array,
+    required : true
+  },  
+  following : {
+    type : Array,
+    required : true
+  },  
+  imageUrl : {
+    type : String,
+    required : false,
+  },
+  isPrivate: {
+    type : Boolean,
     required:true
   }
 },{

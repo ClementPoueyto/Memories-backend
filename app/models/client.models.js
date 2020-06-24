@@ -7,6 +7,7 @@ module.exports = new BaseModel('Client', {
   email : Joi.string().required(),  
   pseudo: Joi.string().required(),
   password : Joi.string().required(),
+  isAdmin: Joi.number().required()
 
 },
 new mongoose.Schema({
@@ -21,6 +22,12 @@ new mongoose.Schema({
   password : {
     type : String,
     required : true
+  },
+  isAdmin : {
+    type : Number,
+    required : true
   }
+},{
+  versionKey: false // should be aware of the outcome after set to false
 })
 )

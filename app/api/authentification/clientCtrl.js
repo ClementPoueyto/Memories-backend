@@ -1,9 +1,9 @@
-const { Router } = require('express')
-const router = new Router()
 const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken')
-const { Client, User } = require('../../models')
+const jwtUtils = require('../../utils/jwt.utils.js')
+const { Client,User } = require('../../models')
 
+//constants
+const EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
 
 module.exports = {
     register: function (req, res) {
@@ -15,27 +15,45 @@ module.exports = {
             return res.status(400).json({ 'error': 'missing parameters' });
         }
 
+        if(!EMAIL_REGEX.test(email)){
+            return res.status(400).json({ 'error': 'wrong email'})
+        }
+
+        if(pseudo.length>=20 || pseudo.length<=4){
+            return res.status(400).json({'error': 'wrong pseudo (must be length 5 -20)'})
+        }
+
+
         Client.mongooseModel.findOne({ email: email }).then(function (userFound) {
             if (!userFound) {
                 Client.mongooseModel.findOne({ pseudo: pseudo }).then(function (pseudoFound) {
                     if (!pseudoFound) {
                         bcrypt.hash(password, 5, function (err, bcryptPassword) {
-                            const newClient = Client.create({
+                            Client.create({
                                 email: email,
                                 pseudo: pseudo,
                                 password: bcryptPassword,
+                                isAdmin : 0
+                            }, (err,client) =>{
+                                if (client&&!err) {
+                                    const user = { _id:client._id.toString(), titles:pseudo, isPrivate : false} 
+                                    User.create(user,(error, user)=>{
+                                        if (error||!user) {
+                                          error?res.status(400).json({ 'error': error }):res.status(400).json({ 'error': "server failed to create user" });
+                                        }
+                                        else{
+                                            return res.status(201).json({
+                                                'uid': client._id
+                                            })                                       
+                                        }
+                                      })
+                                    
+                                }
+                                else {
+                                    return res.status(500).json({ 'error': err })
+                                }
                             })
-                            if (newClient) {
-                                console.log(Client.items.length)
-                                return res.status(201).json({
-                                    'uid': newClient.id
-                                })
-                            }
-                            else {
-                                return res.status(500).json({ 'error': 'cannot add client' })
-                            }
                         })
-
                     }
                     else {
                         return res.status(409).json({ 'error': 'pseudo already exist' })
@@ -54,8 +72,105 @@ module.exports = {
 
     login: function (req, res) {
         const email = req.body.email
-        const pseudo = req.body.pseudo
         const password = req.body.password
+        if (email == null || password == null) {
+            return res.status(400).json({ 'error': 'missing parameters' });
+        }
+
+        Client.mongooseModel.findOne({email:email})
+        .then(function (userFound) {
+            console.log(userFound)
+
+            if(userFound){
+                bcrypt.compare(password,userFound.password,function (errBcrypt, resBcrypt) {
+                    console.log(resBcrypt)
+                    if(resBcrypt){
+                        return res.status(200).json({
+                            'uid':userFound._id,
+                            'token': jwtUtils.GenerateTokenForUser(userFound)
+                        });
+
+                    }
+                    else{
+                        return res.status(403).json({'error': 'invalid password'});
+
+                    }
+                })
+            }
+            else{
+                return res.status(400).json({'error': 'no user found'});
+
+            }
+        }
+        
+            
+        ).catch(function(err) {
+            return res.status(500).json({"error": "unable to verify user"})
+        });
+    },
+
+    getClientProfile: function (req,res) {
+        //Getting auth header
+
+        const headerAuth = req.headers['authorization'];
+        const userId = jwtUtils.getUserId(headerAuth);
+
+        if(userId.length <=1){
+            return res.status(400).json({
+                'error': 'wrong token'
+            })
+        }
+
+        Client.mongooseModel.findById(userId,{password:0}, (err,client)=>{
+            if(client){
+                res.status(200).json(client)
+            }
+            else{
+                err?res.status(400).json({'error':err}):res.status(404).json({"error":"no user found"})
+            }
+        })
+    },
+
+    updateClientProfile:function (req,res) {
+        //Getting auth header
+        const headerAuth = req.headers['authorization'];
+        const userId = jwtUtils.getUserId(headerAuth);
+        if(userId.length <=1){
+            return res.status(400).json({
+                'error': 'wrong token'
+            })
+        }
+
+        const email = req.body.email
+        const password = req.body.password
+        const pseudo = req.body.pseudo
+
+        if (email == null && password == null &&pseudo ==null) {
+            return res.status(400).json({ 'error': 'missing parameters' });
+        }
+
+        if(email&&!EMAIL_REGEX.test(email)){
+            return res.status(400).json({ 'error': 'wrong email'})
+        }
+
+        if(pseudo&&(pseudo.length>=20 || pseudo.length<=4)){
+            return res.status(400).json({'error': 'wrong pseudo (must be length 5 -20)'})
+        }
+        let itemToUpdate = {}
+        if(email!=null) itemToUpdate= {...itemToUpdate, email:email}
+        if(pseudo!=null) itemToUpdate= {...itemToUpdate, pseudo:pseudo}
+        if(password!=null) itemToUpdate= {...itemToUpdate, password:password}
+
+
+        console.log(itemToUpdate)
+        Client.update(userId, itemToUpdate, (err,updated)=>{
+            if(err || !res){
+                err?res.status(400).json({'error':err}):res.status(404).json({"error":"no user found"})
+            }
+            else{
+                res.status(200).json(updated)
+            }
+        })
 
     }
 }

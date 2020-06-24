@@ -2,7 +2,6 @@ const { Router } = require('express')
 const Notifications = require('./notifications')
 const Posts = require('./posts')
 const { User } = require('../../models')
-const manageAllErrors = require('../../utils/routes/error-management')
 
 
 const router = new Router()
@@ -10,9 +9,10 @@ const router = new Router()
 router.use('/:uid/notifications', Notifications)
 router.use('/:uid/posts', Posts)
 
+//TODO CHECK TOKEN PRIVATE / ADMIN
 
 router.get('/', (req, res) => {
-  const users = User.get((err,users)=>{
+  User.get((err,users)=>{
     if (users) {
       res.status(200).json(users)
     }
@@ -37,7 +37,6 @@ router.get('/:uid', (req, res) => {
   }
   else {
     res.status(400).json({ 'error': 'bad id' });
-
   }
 })
 

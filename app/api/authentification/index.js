@@ -5,7 +5,11 @@ const clientCtrl = require('./clientCtrl')
 
 const router = new Router()
 
-router.post('/',clientCtrl.register);
+router.post('/signin',clientCtrl.register);
+router.post('/login',clientCtrl.login);
+router.get('/me',clientCtrl.getClientProfile);
+router.put('/me',clientCtrl.updateClientProfile)
+
 
 
   

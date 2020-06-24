@@ -5,10 +5,16 @@ const clientCtrl = require('./clientCtrl')
 
 const router = new Router()
 
+// No condition
 router.post('/signin',clientCtrl.register);
+
 router.post('/login',clientCtrl.login);
+
+
+//TOKEN User
 router.get('/me',clientCtrl.getClientProfile);
-router.put('/me',clientCtrl.updateClientProfile)
+
+router.put('/me',clientCtrl.updateClientProfile);
 
 
 

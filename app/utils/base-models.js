@@ -80,7 +80,9 @@ module.exports = class BaseModel {
         }
         else {
           const updatedItem = { ...res.toObject(), ...obj }
-          delete updatedItem._id 
+          if(!Array.from(this.schema._ids._byKey.keys()).find(element => element ==="_id")){
+            delete updatedItem._id
+          }
 
           console.log(updatedItem)
 

@@ -6,12 +6,12 @@ module.exports = new BaseModel('User', {
   _id : Joi.string().required(),
   firstName : Joi.string().required(),  
   lastName : Joi.string().required(),  
-  fullName : Joi.string().required(),  
   followers : Joi.array().required(),  
   following : Joi.array().required(),  
   imageUrl : Joi.string().allow("").required(),  
   isPrivate : Joi.boolean().required(),
-  pseudo : Joi.string().required(),  
+  pseudo : Joi.string().required(),
+  posts : Joi.array().required() 
 
 },
 new mongoose.Schema({
@@ -31,10 +31,6 @@ new mongoose.Schema({
     type : String,
     required : true
   },
-  fullName : {
-    type : String,
-    required : true
-  },
   followers : {
     type : Array,
     required : true
@@ -50,6 +46,10 @@ new mongoose.Schema({
   isPrivate: {
     type : Boolean,
     required:true
+  },
+  posts : {
+    type : Array,
+    required : true
   }
 },{
   versionKey: false // should be aware of the outcome after set to false

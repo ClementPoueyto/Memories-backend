@@ -1,7 +1,7 @@
 const Joi = require('@hapi/joi')
 const BaseModel = require('../utils/base-models')
 const mongoose = require('mongoose')
-const { string } = require('@hapi/joi')
+const { string, required, any } = require('@hapi/joi')
 
 module.exports = new BaseModel('User', {
   titles : Joi.string().required(),  

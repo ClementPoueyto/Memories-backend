@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt')
 const jwtUtils = require('../../utils/jwt.utils.js')
-const { Post } = require('../../models')
+const { Post, User } = require('../../models')
 
 module.exports = {
     getAllPosts: function (req, res) {
@@ -97,7 +97,24 @@ module.exports = {
                 error ? res.status(400).json({ 'error': error }) : res.status(500).json({ 'error': "server failed to create post" });
             }
             else {
-                res.status(201).json(post)
+                User.getById(userId, (err, user) => {
+                    if (error || !user) {
+                        error ? res.status(400).json({ 'error': error }) : res.status(500).json({ 'error': "server failed to update user" });
+                    }
+                    else {
+                        var postArray = user.posts
+                        postArray.push(post._id)
+                        User.update(userId, { posts: postArray }, (error, user) => {
+                            if (error || !user) {
+                                error ? res.status(400).json({ 'error': error }) : res.status(500).json({ 'error': "server failed to update user" });
+                            }
+                            else {
+                                res.status(201).json(post)
+                            }
+                        })
+                    }
+                })
+
             }
         })
     },
@@ -167,7 +184,7 @@ module.exports = {
         })
     },
 
-    getMyPosts : function (req, res) {
+    getMyPosts: function (req, res) {
         const headerAuth = req.headers['authorization'];
         const userId = jwtUtils.getUserId(headerAuth);
 
@@ -177,17 +194,37 @@ module.exports = {
             })
         }
 
-        Post.mongooseModel.find({uid:userId}).then(function (postsFound) {
-            if(postsFound){
+        Post.mongooseModel.find({ uid: userId }).then(function (postsFound) {
+            if (postsFound) {
                 return res.status(200).send(postsFound)
             }
-            else{
-                return res.status(400).json({'error' : 'no post found'})
+            else {
+                return res.status(400).json({ 'error': 'no post found' })
             }
         })
     },
 
-    getPostsFromUid : function (req, res) {
+    getPostsFromUid: function (req, res) {   
+        const id = req.params.uid
+        if (!(typeof id === 'string' && id.match(/^[0-9a-fA-F]{24}$/))) {
+            return res.status(400).json({ 'error': 'bad id' });
+        }
+        Post.mongooseModel.find({ uid: id, isPrivate : false}).then(function (postsFound) {
+            if (postsFound) {
+                return res.status(200).send(postsFound)
+            }
+            else {
+                return res.status(400).json({ 'error': 'no post found' })
+            }
+        })
+    },
+
+    //TODO ADD NOTIFS
+    likePost : function (req, res) {
+        
+    },
+
+    commentPost : function (req, res) {
         
     }
 }

@@ -13,6 +13,8 @@ router.get('/me', UsersCtrl.getUserProfile)
 
 router.put('/me', UsersCtrl.updateUserProfile)
 
+router.put("/follow/:uid", UsersCtrl.followUser)
+
 //Only Admin 
 router.get('/', UsersCtrl.getAllUsers)
 

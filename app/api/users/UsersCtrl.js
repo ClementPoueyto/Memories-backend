@@ -176,5 +176,71 @@ module.exports = {
                     res.status(400).json({ 'error': 'pseudo already taken' })
                 }
             })
+    },
+
+    followUser : function (req, res) {
+        const headerAuth = req.headers['authorization'];
+        const userId = jwtUtils.getUserId(headerAuth);
+        if (userId.length <= 1) {
+            return res.status(400).json({
+                'error': 'wrong token'
+            })
+        }
+        const uidToFollow = req.params.uid
+        if (!(typeof uidToFollow === 'string' && uidToFollow.match(/^[0-9a-fA-F]{24}$/))) {
+            return res.status(400).json({ 'error': 'bad id' });
+        }
+
+        if(userId === uidToFollow){
+            return res.status(400).json({ 'error': "can't follow yourself" });
+        }
+
+        User.getById(userId, (error, user)=>{
+            if (error || !user) {
+                error ? res.status(400).json({ 'error': error }) : res.status(400).json({ 'error': "no user found" });
+            }
+            else {
+                User.getById(uidToFollow, (error, userToFollow)=>{
+                    if (error || !userToFollow) {
+                        error ? res.status(400).json({ 'error': error }) : res.status(400).json({ 'error': "no user found to follow" });
+                    }
+                    else {
+                        let following1 = user.following
+                        let followers2 = userToFollow.followers
+                        let message =""
+
+                        const index2 = followers2.indexOf(userId)
+                        if(index2!=-1){
+                            //si follow deja -> unfollow
+                            const index1 = following1.indexOf(uidToFollow)
+                            following1.splice(index1,1)
+                            followers2.splice(index2,1)
+                            message="unfollow"
+                        }
+                        else{
+                            following1.push(uidToFollow)
+                            followers2.push(userId)
+                            message = "follow"
+                        }
+
+                        User.update(uidToFollow, {followers : followers2} ,(err, result)=>{
+                            if (err || !result) {
+                                err ? res.status(400).json({ 'error': err }) : res.status(400).json({ 'error': "no user found" });
+                            }
+                            else{
+                                User.update(userId, {following : following1}, (err, result)=>{
+                                    if (err || !result) {
+                                        err ? res.status(400).json({ 'error': err }) : res.status(400).json({ 'error': "no user found" });
+                                    }
+                                    else{
+                                        res.status(200).json({ 'success': message})
+                                    }
+                                })
+                            }
+                        })
+                    }
+                })
+            }
+        })
     }
 }

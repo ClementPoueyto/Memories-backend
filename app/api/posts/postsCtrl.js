@@ -221,7 +221,46 @@ module.exports = {
 
     //TODO ADD NOTIFS
     likePost : function (req, res) {
-        
+        const headerAuth = req.headers['authorization'];
+        const userId = jwtUtils.getUserId(headerAuth);
+        if (userId.length <= 1) {
+            return res.status(400).json({
+                'error': 'wrong token'
+            })
+        }
+        const idPost = req.params.id
+        if (!(typeof idPost === 'string' && idPost.match(/^[0-9a-fA-F]{24}$/))) {
+            return res.status(400).json({ 'error': 'bad id' });
+        }
+
+        Post.getById(idPost, (err, post)=>{
+            if(err || !post){
+                return res.status(400).json({ 'error': 'no post found' });
+            }
+            else{
+                let likes = post.likes
+                const index = likes.indexOf(userId)
+                const messsage =""
+                if(index!=-1){
+                    //dislike
+                    likes.splice(index, 1)
+                    message = "dislike"
+                }
+                else{
+                    //like
+                    likes.push(userId)
+                    message = "like"
+                }
+                Post.update(idPost, {likes : likes}, (err, updatedPost)=>{
+                    if(err || !updatedPost){
+                        return res.status(500).json({ 'error': 'server failed to update post' });
+                    }
+                    else{
+                        return res.status(200).json({"success": message});
+                    }
+                })
+            }
+        })
     },
 
     commentPost : function (req, res) {

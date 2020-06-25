@@ -9,8 +9,16 @@ module.exports = new BaseModel('Comment', {
   date : Joi.date().timestamp().required(),
 },
 new mongoose.Schema({
-  titles : {
+  uid : {
     type : String,
+    required : true
+  },
+  textComment : {
+    type : String,
+    required : true
+  },
+  date : {
+    type : Number,
     required : true
   }
 }))

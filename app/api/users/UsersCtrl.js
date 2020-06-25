@@ -1,4 +1,3 @@
-const bcrypt = require('bcrypt')
 const jwtUtils = require('../../utils/jwt.utils.js')
 const { User } = require('../../models')
 
@@ -152,8 +151,6 @@ module.exports = {
 
         User.mongooseModel.findOne({ pseudo: pseudo })
             .then(function (userFound) {
-                console.log(userFound)
-
                 if (!userFound) {
 
                     let itemToUpdate = {}

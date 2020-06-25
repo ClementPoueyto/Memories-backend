@@ -157,6 +157,7 @@ module.exports = {
         const email = req.body.email
         const password = req.body.password
 
+
         if (email == null && password == null && pseudo == null) {
             return res.status(400).json({ 'error': 'missing parameters' });
         }
@@ -171,9 +172,11 @@ module.exports = {
                 console.log(userFound)
                 if (!userFound) {
 
+                    bcrypt.hash(password, 5, function (err, bcryptPassword){
+
                     let itemToUpdate = {}
                     if (email != null) itemToUpdate = { ...itemToUpdate, email: email }
-                    if (password != null) itemToUpdate = { ...itemToUpdate, password: password }
+                    if (bcryptPassword != null) itemToUpdate = { ...itemToUpdate, password: bcryptPassword }
 
 
                     console.log(itemToUpdate)
@@ -185,11 +188,13 @@ module.exports = {
                             res.status(200).json(updated)
                         }
                     })
+                })
                 }
                 else{
                     res.status(400).json({'error' : 'email already taken'})
 
                 }
             })
+        
     }
 }

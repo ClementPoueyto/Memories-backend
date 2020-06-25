@@ -12,16 +12,56 @@ module.exports = new BaseModel('Post', {
   isPrivate: Joi.boolean().required(),
   likes: Joi.array().items(Joi.string()).required(),
   comments: Joi.array().items(Joi.object()).required(),
-  position: [
-        Joi.number().required(),
-        Joi.number().required()
-    ],
+  position: 
+    {
+      longitude: Joi.number(),
+      latitude: Joi.number()
+  }
+    ,
   adress : Joi.string().allow(''),
   date : Joi.date().timestamp().required(),
 },
 new mongoose.Schema({
-  titles : {
+  uid : {
     type : String,
     required : true
+  },
+  title : {
+    type : String,
+    required : true
+  },
+  description : {
+    type : String,
+    required : false
+  },
+  imageUrl : {
+    type : String,
+    required : false
+  },
+  isPrivate : {
+    type : Boolean,
+    required : true
+  },
+  likes : {
+    type : Array,
+    required : true
+  },
+  comments : {
+    type : Array,
+    required : true
+  },
+  position : {
+    type : Object,
+    required : false
+  },
+  adress : {
+    type : String,
+    required : false
+  },
+  date : {
+    type : Number,
+    required : true
   }
+},{
+  versionKey: false // should be aware of the outcome after set to false
 }))

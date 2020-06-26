@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt')
 const jwtUtils = require('../../utils/jwt.utils.js')
 const { Post, User } = require('../../models')
+const notifCtrl = require('../users/notifications/notifCtrl.js')
 
 module.exports = {
     getAllPosts: function (req, res) {
@@ -256,14 +257,16 @@ module.exports = {
                         return res.status(500).json({ 'error': 'server failed to update post' });
                     }
                     else{
+                        const notif={
+                            idFrom : userId,
+                            idTo : post.uid,
+                            types : "likes"
+                        }
+                        notifCtrl.addNotifs(notif)
                         return res.status(200).json({"success": message});
                     }
                 })
             }
         })
-    },
-
-    commentPost : function (req, res) {
-        
     }
 }

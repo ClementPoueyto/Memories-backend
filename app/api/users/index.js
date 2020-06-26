@@ -6,7 +6,7 @@ const UsersCtrl = require('./UsersCtrl')
 
 const router = new Router()
 
-router.use('/:uid/notifications', Notifications)
+router.use('/notifs', Notifications)
 
 //TOKEN User
 router.get('/me', UsersCtrl.getUserProfile)
@@ -23,6 +23,7 @@ router.post('/', UsersCtrl.createUser)
 router.delete('/:uid', UsersCtrl.deleteUser)
 
 router.put('/:uid', UsersCtrl.updateUser)
+
 
 //No condition
 router.get('/:uid', UsersCtrl.getUser)

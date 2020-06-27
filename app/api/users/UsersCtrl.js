@@ -34,6 +34,43 @@ module.exports = {
         }
     },
 
+    getMyFollowers : function (req, res) {
+        const headerAuth = req.headers['authorization'];
+        const userId = jwtUtils.getUserId(headerAuth);
+
+        if (userId.length <= 1) {
+            return res.status(400).json({
+                'error': 'wrong token'
+            })
+        }
+            User.mongooseModel.find({following: userId}, (error, users) => {
+                if (!users || error) {
+                    (!users) ? res.status(400).json({ 'error': 'no user found' }) : res.status(400).json({ 'error': error });
+                }
+                else {
+                    res.status(200).send(users)
+                }
+            })
+    },
+    getMyFollowing : function (req, res) {
+        const headerAuth = req.headers['authorization'];
+        const userId = jwtUtils.getUserId(headerAuth);
+
+        if (userId.length <= 1) {
+            return res.status(400).json({
+                'error': 'wrong token'
+            })
+        }
+            User.mongooseModel.find({followers: userId}, (error, users) => {
+                if (!users || error) {
+                    (!users) ? res.status(400).json({ 'error': 'no user found' }) : res.status(400).json({ 'error': error });
+                }
+                else {
+                    res.status(200).send(users)
+                }
+            })
+    },
+
     createUser: function (req, res) {
         if (jwtUtils.isUserAdmin(req.headers['authorization']) === true) {
             const user = {
@@ -160,8 +197,6 @@ module.exports = {
                     if (pseudo != null) itemToUpdate = { ...itemToUpdate, pseudo: pseudo }
                     if (isPrivate != null) itemToUpdate = { ...itemToUpdate, isPrivate: isPrivate }
 
-
-                    console.log(itemToUpdate)
                     User.update(userId, itemToUpdate, (err, updated) => {
                         if (err || !res) {
                             err ? res.status(400).json({ 'error': err }) : res.status(404).json({ "error": "no user found" })
@@ -233,13 +268,33 @@ module.exports = {
                                         err ? res.status(400).json({ 'error': err }) : res.status(400).json({ 'error': "no user found" });
                                     }
                                     else{
-                                        res.status(200).json({ 'success': message})
+                                        res.status(200).send(result)
                                     }
                                 })
                             }
                         })
                     }
                 })
+            }
+        })
+    },
+
+    searchUser : function (req, res) {
+        const headerAuth = req.headers['authorization'];
+        const userId = jwtUtils.getUserId(headerAuth);
+        if (userId.length <= 1) {
+            return res.status(400).json({
+                'error': 'wrong token'
+            })
+        }
+
+        const pseudoToSearch = req.params.pseudo
+        User.mongooseModel.find({pseudo: pseudoToSearch}, (error, users) => {
+            if (!users || error) {
+                (!users) ? res.status(400).json({ 'error': 'no user found' }) : res.status(400).json({ 'error': error });
+            }
+            else {
+                res.status(200).send(users)
             }
         })
     }

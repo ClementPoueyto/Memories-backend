@@ -6,7 +6,8 @@ module.exports = new BaseModel('Client', {
 
   email : Joi.string().required(),  
   password : Joi.string().required(),
-  isAdmin: Joi.boolean().required()
+  isAdmin: Joi.boolean().required(),
+  token : Joi.string().required()
 
 },
 new mongoose.Schema({
@@ -21,6 +22,10 @@ new mongoose.Schema({
   isAdmin : {
     type : Boolean,
     required : true
+  },
+  token : {
+    type : String,
+    required :true
   }
 },{
   versionKey: false // should be aware of the outcome after set to false

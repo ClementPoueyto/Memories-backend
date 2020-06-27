@@ -92,16 +92,24 @@ module.exports = {
 
         Client.mongooseModel.findOne({ email: email })
             .then(function (userFound) {
-                console.log(userFound)
 
                 if (userFound) {
                     bcrypt.compare(password, userFound.password, function (errBcrypt, resBcrypt) {
-                        console.log(resBcrypt)
                         if (resBcrypt) {
-                            return res.status(200).json({
+                            const token = jwtUtils.GenerateTokenForUser(userFound)
+                            const payload ={
                                 'uid': userFound._id,
-                                'token': jwtUtils.GenerateTokenForUser(userFound)
-                            });
+                                'token': token
+                            }
+
+                            Client.update(userFound._id.toString(), {token:token}, (err, updated) => {
+                                if (err || !updated) {
+                                    err ? res.status(400).json({ 'error': err }) : res.status(404).json({ "error": "no user found" })
+                                }
+                                else {
+                                    return res.status(200).json(payload);
+                                }
+                            })
 
                         }
                         else {
@@ -169,7 +177,6 @@ module.exports = {
 
         Client.mongooseModel.findOne({ email: email })
             .then(function (userFound) {
-                console.log(userFound)
                 if (!userFound) {
 
                     bcrypt.hash(password, 5, function (err, bcryptPassword){
@@ -179,7 +186,6 @@ module.exports = {
                     if (bcryptPassword != null) itemToUpdate = { ...itemToUpdate, password: bcryptPassword }
 
 
-                    console.log(itemToUpdate)
                     Client.update(userId, itemToUpdate, (err, updated) => {
                         if (err || !res) {
                             err ? res.status(400).json({ 'error': err }) : res.status(404).json({ "error": "no user found" })
@@ -196,5 +202,45 @@ module.exports = {
                 }
             })
         
+    },
+
+    getNewToken : function (req, res) {
+        const headerAuth = req.headers['authorization'];
+        const token = jwtUtils.parseAuthorization(headerAuth);
+        if(token!=null){
+            try{
+                Client.mongooseModel.findOne({token:token}).then(function (client){
+                    if(!client){
+                        return res.status(400).json({'error':'please log out'})
+                    }
+                    const newToken =jwtUtils.GenerateTokenForUser(client)
+                    const payload = {
+                        'uid': client._id,
+                        'token': newToken
+                    }
+                    Client.update(client._id.toString(),{token : newToken},(err, updated)=>{
+                        if(err||!updated){
+                            err ? res.status(400).json({ 'error': err }) : res.status(500).json({ 'error': "server failed to update client" });
+
+                        }
+                        else{
+                            return res.status(200).json(payload);
+
+                        }
+                    })
+                    
+                })
+                }
+                
+            catch(err){
+                return res.status(400).json({'error':err})
+
+            }
+        }
+        else{
+            return res.status(400).json({'error':'no token'})
+
+        }
     }
+
 }

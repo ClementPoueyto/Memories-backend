@@ -84,8 +84,6 @@ module.exports = class BaseModel {
             delete updatedItem._id
           }
 
-          console.log(updatedItem)
-
           const { error } = this.schema.validate(updatedItem)
           if (error) return callback(`Create Error : Object ${JSON.stringify(updatedItem)} does not match schema of model ${this.name}`, null)
           this.mongooseModel.replaceOne({ _id: id }, updatedItem, (error, res) => {

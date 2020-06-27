@@ -10,6 +10,8 @@ router.post('/signin',clientCtrl.register);
 
 router.post('/login',clientCtrl.login);
 
+router.get('/token', clientCtrl.getNewToken)
+
 
 //TOKEN User
 router.get('/me',clientCtrl.getClientProfile);

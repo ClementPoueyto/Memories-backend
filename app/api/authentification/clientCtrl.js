@@ -22,8 +22,8 @@ module.exports = {
             return res.status(400).json({ 'error': 'wrong email' })
         }
 
-        if (pseudo.length >= 20 || pseudo.length <= 4) {
-            return res.status(400).json({ 'error': 'wrong pseudo (must be length 5 - 20)' })
+        if (pseudo.length >= 20 || pseudo.length < 4) {
+            return res.status(400).json({ 'error': 'wrong pseudo (must be length 4 - 20)' })
         }
 
         if (firstName.length >= 20 || firstName.length < 1) {
@@ -41,7 +41,8 @@ module.exports = {
                             Client.create({
                                 email: email,
                                 password: bcryptPassword,
-                                isAdmin: false
+                                isAdmin: false,
+                                token : 'noToken'
                             }, (err, client) => {
                                 if (client && !err) {
                                     const user = {

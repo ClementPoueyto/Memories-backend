@@ -66,13 +66,33 @@ module.exports = {
                         date : Date.now().toString(),
                         seen : false,
                         textNotification : message,
-                        types : notif.types
+                        types : notif.types,
+                        idRef : notif.idRef
                     }
-                    Notif.create(myNotif)
+                    Notif.create(myNotif,(err,res)=>{})
                 }
             } )
-
-            
         }
+    },
+
+    updateNotif : function (req, res) {
+        const headerAuth = req.headers['authorization'];
+        const userId = jwtUtils.getUserId(headerAuth);
+
+        if (userId.length <= 1) {
+            return res.status(400).json({
+                'error': 'wrong token'
+            })
+        }
+        const id = req.params.id
+            Notif.update(id, {seen:true}, function (err, notif) {
+
+                if (!notif || err) {
+                    res.status(400).json({ 'error': err });
+                }
+                else {
+                    res.status(200).send(notif)
+                }
+            })
     }
 }

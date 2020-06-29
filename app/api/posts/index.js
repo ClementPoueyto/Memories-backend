@@ -4,13 +4,15 @@ const postsCtrl = require('./postsCtrl')
 const Comment = require('./comments')
 
 
-const router = new Router()
+const router = new Router({mergeParams: true})
 
 router.use('/:id/comments', Comment)
 
 
 //TOKEN
 router.get('/myPosts', postsCtrl.getMyPosts)
+
+router.get('/myFeed', postsCtrl.getMyFeed)
 
 router.post('/', postsCtrl.createPost)
 

@@ -21,6 +21,14 @@ module.exports = {
     },
 
     getPost: function (req, res) {
+        const headerAuth = req.headers['authorization'];
+        const userId = jwtUtils.getUserId(headerAuth);
+
+        if (userId.length <= 1) {
+            return res.status(400).json({
+                'error': 'wrong token'
+            })
+        }
         const id = req.params.id
         if (typeof id === 'string' && id.match(/^[0-9a-fA-F]{24}$/)) {
             Post.getById(id, (error, post) => {
@@ -28,7 +36,7 @@ module.exports = {
                     (!post) ? res.status(400).json({ 'error': 'no post found' }) : res.status(400).json({ 'error': error });
                 }
                 else {
-                    if (post.isPrivate == true) {
+                    if (post.isPrivate == true&&post.uid!=userId) {
                         return res.status(400).json({ 'error': 'post is private' })
                     }
                     else {
@@ -160,10 +168,10 @@ module.exports = {
         if (adress != null) updatedPost = { ...updatedPost, adress: adress }
         if (isPrivate != null) updatedPost = { ...updatedPost, isPrivate: isPrivate }
 
-
+        console.log(id)
         Post.getById(id, (err, post) => {
             if (err || !post) {
-                return res.status(400).json({ 'error': 'no post found' })
+                return err?res.status(500).json({'error': err}):res.status(400).json({ 'error': 'no post found' })
             }
             else {
                 if ((jwtUtils.isUserAdmin(headerAuth) === true) || post.uid === userId) {
@@ -257,15 +265,57 @@ module.exports = {
                         return res.status(500).json({ 'error': 'server failed to update post' });
                     }
                     else{
-                        const notif={
-                            idFrom : userId,
-                            idTo : post.uid,
-                            types : "likes"
+                        if(message==="like"){
+                            const notif={
+                                idFrom : userId,
+                                idTo : post.uid,
+                                types : "likes",
+                                idRef : idPost.toString()
+                            }
+                            notifCtrl.addNotifs(notif)
                         }
-                        notifCtrl.addNotifs(notif)
                         return res.status(200).json({"success": message});
                     }
                 })
+            }
+        })
+    },
+
+    getMyFeed : function (req, res) {
+        const headerAuth = req.headers['authorization'];
+        const userId = jwtUtils.getUserId(headerAuth);
+
+        if (userId.length <= 1) {
+            return res.status(400).json({
+                'error': 'wrong token'
+            })
+        }
+
+        User.mongooseModel.find({followers: userId, isPrivate:false}, (error, users) => {
+            var feedPosts =[]
+            if (!users || error) {
+                (!users) ?  res.status(400).json({ 'error': 'no user found' }) :  res.status(400).json({ 'error': error });
+                return 
+            }
+            else {
+                 users.forEach((user)=>{
+                    Post.mongooseModel.find({ uid: user._id, isPrivate: false }).then(function (postsFound) {
+                        if (postsFound) {
+                            postsFound.forEach((element)=>{
+                                console.log('riiiii')
+
+                                feedPosts.push(element)
+                            })
+                        }
+                    })
+                    console.log('zeee')
+                })
+                console.log("ceci est le resultat"+feedPosts)
+
+                if(feedPosts.length==0){
+                    return res.status(400).json({'error':'no posts'})
+                }
+                return res.status(200).send(feedPosts)
             }
         })
     }

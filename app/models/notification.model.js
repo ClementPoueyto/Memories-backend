@@ -8,7 +8,7 @@ module.exports = new BaseModel('Notif', {
   idFrom: Joi.string().required(),
   idTo: Joi.string().required(),
   date:  Joi.date().timestamp().required(),
-  //ref: Joi.string().required(),
+  idRef: Joi.string().required(),
   seen: Joi.boolean().required(),
   textNotification : Joi.string().required(),
   types : Joi.string().required(),
@@ -36,6 +36,10 @@ new mongoose.Schema({
     required : true
   },
   types : {
+    type : String,
+    required : true
+  },
+  idRef : {
     type : String,
     required : true
   }

@@ -52,7 +52,7 @@ module.exports = class BaseModel {
   getById(id, callback) {
     return this.mongooseModel.findById({ _id: id }, (error, res) => {
       if (!res || error) {
-        return error ? callback(error, null) : callback("no user found", null)
+        return error ? callback(error, null) : callback("no object found", null)
       }
       else {
         return callback(null, res)
@@ -76,7 +76,7 @@ module.exports = class BaseModel {
     if (typeof id === 'string' && id.match(/^[0-9a-fA-F]{24}$/)) {
       this.mongooseModel.findById({ _id: id }, (error, res) => {
         if (!res || error) {
-          return (error) ? callback(error, null) : callback("no user found", null)
+          return (error) ? callback(error, null) : callback("no object found", null)
         }
         else {
           const updatedItem = { ...res.toObject(), ...obj }

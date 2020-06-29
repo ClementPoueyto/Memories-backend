@@ -18,11 +18,10 @@ module.exports = {
         if (!(typeof idPost === 'string' && idPost.match(/^[0-9a-fA-F]{24}$/))) {
             return res.status(400).json({ 'error': 'bad id' });
         }
-
+        console.log(req.body)
         const textComment = req.body.textComment
 
         const date = req.body.date
-
         if (date == null && textComment == null) {
             return res.status(400).json({ 'error': 'missing parameters' });
         }

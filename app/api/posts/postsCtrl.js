@@ -50,6 +50,19 @@ module.exports = {
         }
     },
 
+    test : function (req,res) {
+        const headerAuth = req.headers['authorization'];
+        const userId = jwtUtils.getUserId(headerAuth);
+
+        if (userId.length <= 1) {
+            return res.status(400).json({
+                'error': 'wrong token'
+            })
+        }
+
+        
+    }
+,
     createPost: function (req, res) {
         const headerAuth = req.headers['authorization'];
         const userId = jwtUtils.getUserId(headerAuth);
@@ -60,10 +73,14 @@ module.exports = {
             })
         }
 
+        const dateServ = Date.now();
+        var start = dateServ-86400000;
+        var end = dateServ+86400000;
+
         const title = req.body.title
         const description = req.body.description
         const isPrivate = req.body.isPrivate
-        const imageUrl = req.body.imageUrl
+        var imageUrl = req.body.imageUrl
         const position = req.body.position
         const adress = req.body.adress
         const date = req.body.date
@@ -87,45 +104,50 @@ module.exports = {
             return res.status(400).json({ 'error': 'wrong adress (must be length max 100)' })
         }
 
+        if(date <start || date>end){
+            return res.status(400).json({'error': 'wrong date'})
+        }
+        if(imageUrl==null){
+            imageUrl="";
+        }
+
         var post = {
             uid: userId,
             title: title,
             likes: [],
             comments: [],
             isPrivate: isPrivate,
-            date: date
+            date: date,
+            imageUrl : imageUrl
         }
 
         if (description != null) post = { ...post, description: description }
         if (position != null) post = { ...post, position: position }
-        if (imageUrl != null) post = { ...post, imageUrl: imageUrl }
         if (adress != null) post = { ...post, adress: adress }
 
-        Post.create(post, (error, post) => {
-            if (error || !post) {
-                error ? res.status(400).json({ 'error': error }) : res.status(500).json({ 'error': "server failed to create post" });
+
+        
+       Post.mongooseModel.find({uid:userId,date: {$gte: start, $lt: end}}).then(function(posts){
+            if(posts.length>1){
+                posts.forEach((post)=>{
+                    Post.delete(post.id,(err,res)=>{
+                        console.log("deleted")
+                    })
+                })
             }
-            else {
-                User.getById(userId, (err, user) => {
-                    if (error || !user) {
-                        error ? res.status(400).json({ 'error': error }) : res.status(500).json({ 'error': "server failed to update user" });
+            else{
+                Post.create(post, (error, post) => {
+                    if (error || !post) {
+                        error ? res.status(400).json({ 'error': error }) : res.status(500).json({ 'error': "server failed to create post" });
                     }
                     else {
-                        var postArray = user.posts
-                        postArray.push(post._id)
-                        User.update(userId, { posts: postArray }, (error, user) => {
-                            if (error || !user) {
-                                error ? res.status(400).json({ 'error': error }) : res.status(500).json({ 'error': "server failed to update user" });
-                            }
-                            else {
-                                res.status(201).json(post)
-                            }
-                        })
+                        res.status(201).json(post)
                     }
                 })
-
             }
-        })
+       })
+
+        
     },
     updatePost: function (req, res) {
         const headerAuth = req.headers['authorization'];
@@ -168,7 +190,8 @@ module.exports = {
         if (adress != null) updatedPost = { ...updatedPost, adress: adress }
         if (isPrivate != null) updatedPost = { ...updatedPost, isPrivate: isPrivate }
 
-        console.log(id)
+        console.log(updatedPost)
+
         Post.getById(id, (err, post) => {
             if (err || !post) {
                 return err?res.status(500).json({'error': err}):res.status(400).json({ 'error': 'no post found' })
@@ -182,13 +205,40 @@ module.exports = {
                             res.status(400).json({ 'error': err });
                         }
                         else {
-                            res.status(200).send(post)
+                            const toSend = {
+                                ...post, _id : id
+                            }
+                            res.status(200).send(toSend)
                         }
                     })
                 }
                 else {
                     res.status(404).json({ 'error': 'not allowed' });
                 }
+            }
+        })
+    },
+
+    deletePost : function (req, res) {
+        const headerAuth = req.headers['authorization'];
+        const userId = jwtUtils.getUserId(headerAuth);
+
+        if (userId.length <= 1) {
+            return res.status(400).json({
+                'error': 'wrong token'
+            })
+        }
+        const id = req.params.id
+        if (!(typeof id === 'string' && id.match(/^[0-9a-fA-F]{24}$/))) {
+            return res.status(400).json({ 'error': 'bad id' });
+        }
+
+        Post.mongooseModel.findOneAndDelete({ uid : userId,_id: id }).then(function (postsFound) {
+            if (postsFound) {
+                return res.status(200).send(postsFound)
+            }
+            else {
+                return res.status(400).json({ 'error': 'no post found' })
             }
         })
     },
@@ -274,7 +324,10 @@ module.exports = {
                             }
                             notifCtrl.addNotifs(notif)
                         }
-                        return res.status(200).json({"success": message});
+                        const postToSend = {
+                            ...updatedPost, _id : idPost
+                        }
+                        return res.status(200).json(postToSend);
                     }
                 })
             }
@@ -302,15 +355,12 @@ module.exports = {
                     Post.mongooseModel.find({ uid: user._id, isPrivate: false }).then(function (postsFound) {
                         if (postsFound) {
                             postsFound.forEach((element)=>{
-                                console.log('riiiii')
 
                                 feedPosts.push(element)
                             })
                         }
                     })
-                    console.log('zeee')
                 })
-                console.log("ceci est le resultat"+feedPosts)
 
                 if(feedPosts.length==0){
                     return res.status(400).json({'error':'no posts'})

@@ -1,5 +1,6 @@
 const jwtUtils = require('../../utils/jwt.utils.js')
-const { User } = require('../../models')
+const { User, Notif } = require('../../models')
+const { addNotifs } = require('./notifications/notifCtrl.js')
 
 module.exports = {
     getAllUsers: function (req, res) {
@@ -268,6 +269,15 @@ module.exports = {
                                         err ? res.status(400).json({ 'error': err }) : res.status(400).json({ 'error': "no user found" });
                                     }
                                     else{
+                                        if (message=="follow"&&userId!=uidToFollow) {
+                                            const notif = {
+                                                idFrom: userId,
+                                                idTo: uidToFollow,
+                                                types: "follow",
+                                                idRef: userId.toString(),
+                                            }
+                                            addNotifs(notif)
+                                        }
                                         res.status(200).send(result)
                                     }
                                 })

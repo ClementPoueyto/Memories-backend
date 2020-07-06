@@ -35,7 +35,7 @@ module.exports = {
 
         Client.mongooseModel.findOne({ email: email }).then(function (userFound) {
             if (!userFound) {
-                User.mongooseModel.findOne({ pseudo: pseudo }).then(function (pseudoFound) {
+                User.mongooseModel.findOne({ pseudo: pseudo.toLowerCase() }).then(function (pseudoFound) {
                     if (!pseudoFound) {
                         bcrypt.hash(password, 5, function (err, bcryptPassword) {
                             Client.create({
@@ -49,12 +49,11 @@ module.exports = {
                                         _id: client._id.toString(),
                                         firstName: firstName,
                                         lastName: lastName,
-                                        pseudo: pseudo,
+                                        pseudo: pseudo.toLowerCase(),
                                         imageUrl: "",
                                         followers: [client._id.toString()],
                                         following: [],
                                         isPrivate: false,
-                                        posts: []
                                     }
                                     User.create(user, (error, user) => {
                                         if (error || !user) {
@@ -99,8 +98,10 @@ module.exports = {
                         if (resBcrypt) {
                             const token = jwtUtils.GenerateTokenForUser(userFound)
                             const payload ={
-                                'uid': userFound._id,
-                                'token': token
+                                '_id': userFound._id,
+                                'token': token,
+                                'isAdmin' :userFound.isAdmin,
+                                'email' : userFound.email
                             }
 
                             Client.update(userFound._id.toString(), {token:token}, (err, updated) => {

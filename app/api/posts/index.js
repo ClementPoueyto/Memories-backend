@@ -8,6 +8,7 @@ const router = new Router({mergeParams: true})
 
 router.use('/:id/comments', Comment)
 
+router.get('/test',postsCtrl.test)
 
 //TOKEN
 router.get('/myPosts', postsCtrl.getMyPosts)
@@ -19,6 +20,8 @@ router.post('/', postsCtrl.createPost)
 router.put('/:id', postsCtrl.updatePost)
 
 router.put("/:id/like" , postsCtrl.likePost)
+
+router.delete("/:id", postsCtrl.deletePost)
 
 //Admin
 router.get("/", postsCtrl.getAllPosts)

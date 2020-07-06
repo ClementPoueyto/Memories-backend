@@ -12,6 +12,7 @@ module.exports = (cb) => {
   app.disable('x-powered-by')
   app.use(cors())
   app.use(bodyParser.json({limit:'50mb'}))
+  app.use(bodyParser.urlencoded({extended:true}))
   app.use(morgan('[:date[iso]] :method :url :status :response-time ms - :res[content-length]'))
   app.use('/uploads',express.static('uploads'))
   app.use('/api', api)

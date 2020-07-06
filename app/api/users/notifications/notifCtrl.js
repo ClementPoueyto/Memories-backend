@@ -44,6 +44,8 @@ module.exports = {
         else{
             User.getById(notif.idFrom,(err, user)=>{
                 if(err||!user){
+                    console.log(err)
+
                     return 
                 }
                 else{
@@ -57,7 +59,7 @@ module.exports = {
                             message += "a commencé à vous suivre"
                             break;
                         case "comment":
-                            message =+ "a commenté votre publication"
+                            message += "a commenté votre publication"
                             break;
                     }
                     const myNotif={
@@ -91,7 +93,10 @@ module.exports = {
                     res.status(400).json({ 'error': err });
                 }
                 else {
-                    res.status(200).send(notif)
+                    const updatedNotif ={
+                        ...notif, _id:id
+                    }
+                    res.status(200).send(updatedNotif)
                 }
             })
     }

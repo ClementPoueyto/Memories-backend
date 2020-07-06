@@ -11,7 +11,6 @@ module.exports = new BaseModel('User', {
   imageUrl : Joi.string().allow("").required(),  
   isPrivate : Joi.boolean().required(),
   pseudo : Joi.string().required(),
-  posts : Joi.array().required() 
 
 },
 new mongoose.Schema({
@@ -47,10 +46,6 @@ new mongoose.Schema({
     type : Boolean,
     required:true
   },
-  posts : {
-    type : Array,
-    required : true
-  }
 },{
   versionKey: false // should be aware of the outcome after set to false
 })

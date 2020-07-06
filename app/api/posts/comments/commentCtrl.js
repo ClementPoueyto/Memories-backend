@@ -1,12 +1,14 @@
 const jwtUtils = require('../../../utils/jwt.utils.js')
-const { Comment, Post } = require('../../../models')
+const { Comment, Post } = require('../../../models');
+const { addNotifs } = require('../../users/notifications/notifCtrl.js');
+const notifCtrl = require('../../users/notifications/notifCtrl.js');
 
 module.exports = {
-    getComments : function (req , res) {
-        
+    getComments: function (req, res) {
+
     },
 
-    createComment : function(req,res){
+    createComment: function (req, res) {
         const headerAuth = req.headers['authorization'];
         const userId = jwtUtils.getUserId(headerAuth);
         if (userId.length <= 1) {
@@ -18,7 +20,6 @@ module.exports = {
         if (!(typeof idPost === 'string' && idPost.match(/^[0-9a-fA-F]{24}$/))) {
             return res.status(400).json({ 'error': 'bad id' });
         }
-        console.log(req.body)
         const textComment = req.body.textComment
 
         const date = req.body.date
@@ -32,36 +33,46 @@ module.exports = {
 
         const idComment = Date.now().toString()
 
-        const comment = { 
-            _id : idComment,
-            uid : userId,  
+        const comment = {
+            _id: idComment,
+            uid: userId,
             textComment: textComment,
-            date : date,
+            date: date,
         }
         const { error } = Comment.schema.validate(comment)
-        if (error) return res.status(400).json({'error':`Create Error : Object ${JSON.stringify(comment)} does not match schema of model ${Comment.name}`})
+        if (error) return res.status(400).json({ 'error': `Create Error : Object ${JSON.stringify(comment)} does not match schema of model ${Comment.name}` })
 
-        Post.getById(idPost, (err, post)=>{
+        Post.getById(idPost, (err, post) => {
             if (err || !post) {
                 err ? res.status(400).json({ 'error': err }) : res.status(500).json({ 'error': "server failed to get post" });
             }
-            else{
+            else {
                 let comments = post.comments
-                comments.push(comment) 
-                Post.update(idPost,{comments : comments}, (error, updated)=>{
+                comments.push(comment)
+                Post.update(idPost, { comments: comments }, (error, updated) => {
                     if (error || !updated) {
                         error ? res.status(400).json({ 'error': error }) : res.status(500).json({ 'error': "server failed to update post" });
                     }
-                    else{
+                    else {
+                        if (post.uid != userId) {
+                            const notif = {
+                                idFrom: userId,
+                                idTo: post.uid,
+                                types: "comment",
+                                idRef: idPost.toString()
+                            }
+                            addNotifs(notif)
+                        }
+
                         res.status(201).send(comment)
                     }
                 })
             }
         })
 
-        
+
     },
-    deleteComment : function (req, res) {
+    deleteComment: function (req, res) {
         const headerAuth = req.headers['authorization'];
         const userId = jwtUtils.getUserId(headerAuth);
         if (userId.length <= 1) {
@@ -74,27 +85,27 @@ module.exports = {
             return res.status(400).json({ 'error': 'bad post id' });
         }
         const idComm = req.params.commId
-        
 
-        Post.getById(idPost, (err, post)=>{
+
+        Post.getById(idPost, (err, post) => {
             if (err || !post) {
                 err ? res.status(400).json({ 'error': err }) : res.status(500).json({ 'error': "server failed to get post" });
             }
-            else{
-                if(post.uid!=userId){
+            else {
+                if (post.uid != userId) {
                     return res.status(400).json({ 'error': "not allowed" })
                 }
                 let comments = post.comments
                 const commToDelete = comments.find(element => element._id === idComm)
-                if(!commToDelete){
+                if (!commToDelete) {
                     return res.status(400).json({ 'error': "no comment" })
                 }
-                comments.splice(comments.indexOf(commToDelete),1)
-                Post.update(idPost,{comments : comments}, (error, updated)=>{
+                comments.splice(comments.indexOf(commToDelete), 1)
+                Post.update(idPost, { comments: comments }, (error, updated) => {
                     if (error || !updated) {
                         error ? res.status(400).json({ 'error': error }) : res.status(500).json({ 'error': "server failed to update post" });
                     }
-                    else{
+                    else {
                         res.status(201).send(commToDelete)
                     }
                 })

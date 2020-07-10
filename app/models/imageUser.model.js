@@ -2,14 +2,19 @@ const Joi = require('@hapi/joi')
 const BaseModel = require('../utils/base-models')
 const mongoose = require('mongoose')
 
-module.exports = new BaseModel('imagePost', {
- path : Joi.string().required(),
- contentType : Joi.string().required(),
- image : Joi.any(),
- uid : Joi.string().required()
+
+module.exports = new BaseModel('imageUser', {
+  path : Joi.string().required(),
+  contentType : Joi.string().required(),
+  uid : Joi.string().required(),
+  url : Joi.string().required()
 },
 
 new mongoose.Schema({
+  url : {
+    type : String,
+    required : true
+  },
   path : {
     type : String,
     required : true
@@ -17,10 +22,6 @@ new mongoose.Schema({
   contentType : {
     type : String,
     required : true
-  },
-  image : {
-      type :mongoose.Schema.Types.Buffer,
-      required : true
   },
   uid : {
     type: String,

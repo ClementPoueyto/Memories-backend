@@ -1,5 +1,6 @@
 const jwtUtils = require('../../../utils/jwt.utils.js')
 const { Notif, User } = require('../../../models')
+const { sendPushNotification } = require('../../fcm/configs_push.js')
 
 module.exports = {
     getNotifs : function (req , res) {
@@ -71,7 +72,14 @@ module.exports = {
                         types : notif.types,
                         idRef : notif.idRef
                     }
-                    Notif.create(myNotif,(err,res)=>{})
+                    Notif.create(myNotif,(err,res)=>{
+                        if(!err&&res){
+                            data ={ id : res.idTo, message : message}
+                            sendPushNotification(data,(err,res)=>{
+                               
+                            })
+                        }
+                    })
                 }
             } )
         }

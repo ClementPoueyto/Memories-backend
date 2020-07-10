@@ -1,8 +1,9 @@
-const PORT  = 9428
-/*const serverUrl = () => { return "https://memories.osc-fr1.scalingo.io/" }
-const DB = "mongodb://admindb:adminMemories@34183965-0160-4f9e-b1b6-ff88f03fbd48.memories-3384.mongo.dbs.scalingo.com:32389/memories-3384?replicaSet=memories-3384-rs0&ssl=true"
-*/
+//const PORT  = 9428
+const PORT  =55924
 const serverUrl = () => { return "https://localhost:"+PORT+"/" }
-const DB = "mongodb://localhost/memories"
+//const DB = "mongodb://localhost/memories"
+const DB="mongodb://admin:mencelt123@ds255924.mlab.com:55924/heroku_w72qz2t4"
+const AWS_SECRET_ACCESS ="NNl12SQDJmV30wS8wCvwyiEndgvFvG7zlwGPzZJj";
 
-module.exports = { serverUrl, PORT, DB }
+const AWS_ACCESS_KEY="AKIAI6YJ3WT57NZT7FQQ";
+module.exports = { serverUrl, PORT, DB ,AWS_SECRET_ACCESS,AWS_ACCESS_KEY}

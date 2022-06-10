@@ -22,7 +22,6 @@ Lien vers le Google Play Store : https://play.google.com/store/apps/details?id=f
 ### Frontend 
 * repository : [https://github.com/ClementPoueyto/Memories-FlutterApp](https://github.com/ClementPoueyto/Memories-FlutterApp)
 
-
 ## Boilerplate Features:
 
 * Splash
